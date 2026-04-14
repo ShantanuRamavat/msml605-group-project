@@ -1,0 +1,17 @@
+# Model files (large)
+model_booster.txt
+model.pkl
+
+# Data
+Housing.csv
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+
+# Docker
+*.tar

@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: house-price-batch-v2
+spec:
+  template:
+    spec:
+      containers:
+      - name: batch-client
+        image: python:3.10-slim
+        command: ["python", "-c"]
+        args:
+        - |
+          import urllib.request, json, time
+
+          URL = "http://abfc7cee14a5549279d871c549811c66-236180841.us-east-1.elb.amazonaws.com"
+
+          house = {
+            "area_sq_ft": 7420, "bedrooms": 4, "bathrooms": 2, "stories": 3,
+            "guestroom": 0, "basement": 0, "airconditioning": 1, "prefarea": 1,
+            "parking": 2, "furnishingstatus_semi_furnished": 0,
+            "furnishingstatus_unfurnished": 0
+          }
+
+          for batch_size in [1, 10, 50, 100, 500]:
+            houses = [house] * batch_size
+            payload = json.dumps({"houses": houses}).encode()
+            req = urllib.request.Request(
+              URL + "/predict/batch",
+              data=payload,
+              headers={"Content-Type": "application/json"},
+              method="POST"
+            )
+            start = time.perf_counter()
+            with urllib.request.urlopen(req) as resp:
+              result = json.loads(resp.read())
+            end_to_end = (time.perf_counter() - start) * 1000
+            print(f"Batch={batch_size:4d} | model_total={result['total_latency_ms']:8.3f}ms | model_avg={result['avg_latency_ms']:6.3f}ms | end_to_end={end_to_end:8.3f}ms")
+      restartPolicy: Never
+  backoffLimit: 2
