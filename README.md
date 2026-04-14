@@ -6,21 +6,23 @@
 - Nikhila Kuchimanchi
 - Shantanu Ramavat
 
-### Project Structure
-house-price-api/
-├── train.py               # Train model and save model_booster.txt
-├── app.py                 # FastAPI application
-├── benchmark.py           # Real-time latency benchmark
-├── visualize_results.py   # Performance charts
-├── visualize_kubernetes.py # Architecture diagram
-├── requirements.txt       # Python dependencies
-├── Dockerfile             # Container definition
-├── .dockerignore
-├── deployment.yaml        # Kubernetes real-time deployment
-├── service.yaml           # Kubernetes LoadBalancer service
-├── hpa.yaml               # Horizontal Pod Autoscaler
-└── batch-job.yaml         # Kubernetes batch Job
+## Project Structure
 
+```
+house-price-api/
+├── train.py                 # Train model and save model_booster.txt
+├── app.py                   # FastAPI application
+├── benchmark.py             # Real-time latency benchmark
+├── visualize_results.py     # Performance charts
+├── visualize_kubernetes.py  # Architecture diagram
+├── requirements.txt         # Python dependencies
+├── Dockerfile               # Container definition
+├── .dockerignore
+├── deployment.yaml          # Kubernetes real-time deployment
+├── service.yaml             # Kubernetes LoadBalancer service
+├── hpa.yaml                 # Horizontal Pod Autoscaler
+└── batch-job.yaml           # Kubernetes batch Job
+```
 ### Setup Instructions
 
 #### 1. Download dataset
