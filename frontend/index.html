@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>House Price Predictor</title>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #1f1f2e, #3a3a5a);
+            color: white;
+            font-family: 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: rgba(20, 20, 30, 0.7);
+            backdrop-filter: blur(12px);
+            padding: 30px;
+            border-radius: 16px;
+            width: 350px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+
+        input::placeholder {
+            color: #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #6a5acd, #00c6ff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .loading {
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .bar {
+            height: 4px;
+            background: linear-gradient(to right, #6a5acd, #00c6ff);
+            width: 0%;
+            margin-top: 10px;
+            animation: load 2s infinite;
+        }
+
+        @keyframes load {
+            0% { width: 0%; }
+            50% { width: 80%; }
+            100% { width: 0%; }
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        canvas {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>House Price Predictor</h2>
+
+    <form id="form">
+        <input type="number" id="area" placeholder="Area (sq ft)" required>
+        <input type="number" id="bedrooms" placeholder="Bedrooms" required>
+        <input type="number" id="bathrooms" placeholder="Bathrooms" required>
+        <input type="number" id="stories" placeholder="Stories" required>
+
+        <button type="submit">Predict</button>
+    </form>
+
+    <div class="loading" id="loading">
+        Analyzing your house...
+        <div class="bar"></div>
+    </div>
+
+    <div class="result" id="result"></div>
+
+    <canvas id="chart" width="300" height="200"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.getElementById("form").onsubmit = async (e) => {
+    e.preventDefault();
+
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("result").innerText = "";
+
+    const data = {
+        area_sq_ft: parseFloat(area.value),
+        bedrooms: parseInt(bedrooms.value),
+        bathrooms: parseInt(bathrooms.value),
+        stories: parseInt(stories.value),
+        guestroom: 0,
+        basement: 0,
+        airconditioning: 1,
+        prefarea: 0,
+        parking: 1,
+        furnishingstatus_semi_furnished: 1,
+        furnishingstatus_unfurnished: 0
+    };
+
+    const res = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    document.getElementById("loading").style.display = "none";
+
+    document.getElementById("result").innerText =
+        "Predicted Price: $" + result.predicted_price.toLocaleString();
+
+    drawChart(result.predicted_price);
+};
+
+let chartInstance;
+
+function drawChart(price) {
+    const ctx = document.getElementById('chart').getContext('2d');
+
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ["Low ($1M)", "Average ($5M)", "High ($10M)", "Your House"],
+            datasets: [{
+                label: "Price Comparison",
+                data: [1000000, 5000000, 10000000, price],
+                backgroundColor: [
+                    "#6a5acd",
+                    "#00c6ff",
+                    "#ff7eb3",
+                    "#ffffff"
+                ]
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    ticks: { 
+                        color: "white",
+                        callback: value => "$" + (value/1000000) + "M"
+                    },
+                    beginAtZero: true
+                },
+                x: {
+                    ticks: { color: "white" }
+                }
+            }
+        }
+    });
+}
+</script>
+
+</body>
+</html>
